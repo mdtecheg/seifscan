@@ -1,0 +1,2685 @@
+html
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>سيف سكان | نظام إدارة الجداول الأسبوعية</title>
+
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+
+<!-- Bootstrap 5 RTL -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css">
+
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<!-- jsPDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+
+<style>
+:root {
+  --primary: #00b4d8;
+  --primary-dark: #0077b6;
+  --primary-light: #48cae4;
+  --accent: #00f5d4;
+  --accent2: #06d6a0;
+  --sidebar-bg: #0a1628;
+  --sidebar-hover: #112240;
+  --card-bg: #ffffff;
+  --body-bg: #f0f4f8;
+  --text-dark: #0a1628;
+  --text-med: #3a4a6b;
+  --text-light: #6b7fa3;
+  --border: #dde3f0;
+  --success: #06d6a0;
+  --warning: #ffd60a;
+  --danger: #ef233c;
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.06);
+  --shadow-md: 0 4px 20px rgba(0,0,0,0.10);
+  --shadow-lg: 0 8px 40px rgba(0,0,0,0.15);
+  --radius: 14px;
+  --radius-sm: 8px;
+  --transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  font-family: 'Cairo', 'Tajawal', sans-serif;
+  background: var(--body-bg);
+  color: var(--text-dark);
+  min-height: 100vh;
+  direction: rtl;
+}
+
+/* ====== LAYOUT ====== */
+.app-wrapper { display:flex; min-height:100vh; }
+
+/* ====== SIDEBAR ====== */
+.sidebar {
+  width: 280px;
+  min-width: 280px;
+  background: var(--sidebar-bg);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 1000;
+  overflow-y: auto;
+  transition: var(--transition);
+}
+
+.sidebar-header {
+  padding: 28px 24px 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  background: linear-gradient(135deg, rgba(0,180,216,0.15), rgba(0,245,212,0.05));
+}
+
+.logo-container {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 6px;
+  cursor: pointer;
+  position: relative;
+}
+
+.logo-wrap {
+  width: 58px;
+  height: 58px;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 2px solid rgba(0,180,216,0.4);
+  flex-shrink: 0;
+  background: #0d1f3c;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.logo-wrap svg, .logo-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.logo-upload-hint {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,180,216,0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: var(--transition);
+  border-radius: 12px;
+  font-size: 11px;
+  color: #fff;
+  text-align: center;
+  font-family: 'Cairo', sans-serif;
+}
+
+.logo-wrap:hover .logo-upload-hint { opacity: 1; }
+
+#logoFileInput { display: none; }
+
+.center-name {
+  flex: 1;
+}
+
+.center-name h1 {
+  font-size: 16px;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1.2;
+  letter-spacing: -0.3px;
+}
+
+.center-name span {
+  font-size: 11px;
+  color: var(--primary-light);
+  font-weight: 500;
+  display: block;
+  margin-top: 2px;
+}
+
+.week-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(0,180,216,0.15);
+  border: 1px solid rgba(0,180,216,0.3);
+  color: var(--primary-light);
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  margin-top: 8px;
+  width: 100%;
+  justify-content: center;
+}
+
+/* Sidebar Nav */
+.sidebar-nav { padding: 20px 0; flex: 1; }
+
+.nav-section-label {
+  padding: 6px 24px;
+  font-size: 10px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.3);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-bottom: 4px;
+  margin-top: 12px;
+}
+
+.nav-item {
+  margin: 2px 12px;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.nav-link-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  color: rgba(255,255,255,0.6);
+  text-decoration: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: var(--transition);
+  cursor: pointer;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: right;
+}
+
+.nav-link-item:hover {
+  background: var(--sidebar-hover);
+  color: rgba(255,255,255,0.9);
+}
+
+.nav-link-item.active {
+  background: linear-gradient(135deg, rgba(0,180,216,0.25), rgba(0,245,212,0.1));
+  color: #fff;
+  border: 1px solid rgba(0,180,216,0.3);
+}
+
+.nav-link-item .nav-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  flex-shrink: 0;
+  transition: var(--transition);
+}
+
+.nav-link-item.active .nav-icon {
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  color: #fff;
+}
+
+.sidebar-footer {
+  padding: 16px 24px;
+  border-top: 1px solid rgba(255,255,255,0.07);
+  text-align: center;
+}
+
+.sidebar-footer p {
+  font-size: 11px;
+  color: rgba(255,255,255,0.25);
+}
+
+/* ====== MAIN CONTENT ====== */
+.main-content {
+  margin-right: 280px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* ====== TOP BAR ====== */
+.topbar {
+  background: #fff;
+  border-bottom: 1px solid var(--border);
+  padding: 0 32px;
+  height: 68px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 900;
+  box-shadow: var(--shadow-sm);
+}
+
+.topbar-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.topbar-title h2 {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-dark);
+}
+
+.topbar-title .page-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 15px;
+}
+
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* ====== WEEK NAVIGATOR ====== */
+.week-navigator {
+  background: #fff;
+  border-bottom: 1px solid var(--border);
+  padding: 12px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.week-nav-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.week-label {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-dark);
+  padding: 0 8px;
+  min-width: 220px;
+  text-align: center;
+}
+
+/* ====== PAGE CONTENT ====== */
+.page-content {
+  padding: 28px 32px;
+  flex: 1;
+}
+
+.page-section { display: none; }
+.page-section.active { display: block; }
+
+/* ====== STAT CARDS ====== */
+.stat-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  margin-bottom: 28px;
+}
+
+.stat-card {
+  background: #fff;
+  border-radius: var(--radius);
+  padding: 22px 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border);
+  transition: var(--transition);
+}
+
+.stat-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.stat-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  flex-shrink: 0;
+}
+
+.stat-icon.blue { background: rgba(0,180,216,0.12); color: var(--primary); }
+.stat-icon.green { background: rgba(6,214,160,0.12); color: var(--success); }
+.stat-icon.purple { background: rgba(123,44,191,0.1); color: #7b2cbf; }
+.stat-icon.orange { background: rgba(255,158,0,0.12); color: #ff9e00; }
+
+.stat-info h3 {
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--text-dark);
+  line-height: 1;
+}
+
+.stat-info p {
+  font-size: 12px;
+  color: var(--text-light);
+  font-weight: 500;
+  margin-top: 3px;
+}
+
+/* ====== SECTION CARD ====== */
+.section-card {
+  background: #fff;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  margin-bottom: 24px;
+}
+
+.section-card-header {
+  padding: 18px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(135deg, #f8fafc, #f0f4f8);
+}
+
+.section-card-header h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-dark);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.section-card-header h3 i {
+  color: var(--primary);
+}
+
+.section-card-body { padding: 0; }
+
+/* ====== FILTERS BAR ====== */
+.filters-bar {
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+  background: #fafbfd;
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.filter-group label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-light);
+  white-space: nowrap;
+}
+
+.filter-select, .filter-input {
+  padding: 7px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-family: 'Cairo', sans-serif;
+  font-size: 13px;
+  color: var(--text-dark);
+  background: #fff;
+  outline: none;
+  transition: var(--transition);
+}
+
+.filter-select:focus, .filter-input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(0,180,216,0.12);
+}
+
+.search-wrapper {
+  position: relative;
+  flex: 1;
+  min-width: 200px;
+}
+
+.search-wrapper i {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-light);
+  font-size: 13px;
+  pointer-events: none;
+}
+
+.search-wrapper input {
+  width: 100%;
+  padding: 7px 34px 7px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-family: 'Cairo', sans-serif;
+  font-size: 13px;
+  color: var(--text-dark);
+  background: #fff;
+  outline: none;
+  transition: var(--transition);
+}
+
+.search-wrapper input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(0,180,216,0.12);
+}
+
+/* ====== SCHEDULE TABLE ====== */
+.schedule-table-wrap {
+  overflow-x: auto;
+}
+
+.schedule-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+}
+
+.schedule-table thead th {
+  background: linear-gradient(135deg, var(--sidebar-bg), #112240);
+  color: #fff;
+  padding: 14px 18px;
+  font-weight: 700;
+  font-size: 13px;
+  text-align: right;
+  white-space: nowrap;
+  position: sticky;
+  top: 0;
+}
+
+.schedule-table thead th:first-child {
+  border-radius: 0 0 0 0;
+}
+
+.schedule-table tbody tr {
+  border-bottom: 1px solid var(--border);
+  transition: var(--transition);
+}
+
+.schedule-table tbody tr:hover {
+  background: rgba(0,180,216,0.04);
+}
+
+.schedule-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.schedule-table td {
+  padding: 14px 18px;
+  color: var(--text-dark);
+  vertical-align: middle;
+}
+
+.day-cell {
+  font-weight: 700;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.day-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 700;
+  background: linear-gradient(135deg, rgba(0,180,216,0.12), rgba(0,245,212,0.08));
+  color: var(--primary-dark);
+  border: 1px solid rgba(0,180,216,0.2);
+}
+
+.doctor-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 12.5px;
+  font-weight: 600;
+  background: rgba(0,119,182,0.08);
+  color: var(--primary-dark);
+  border: 1px solid rgba(0,119,182,0.15);
+  white-space: nowrap;
+}
+
+.doctor-chip .avatar {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.tech-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.tech-chip.mri {
+  background: rgba(123,44,191,0.1);
+  color: #7b2cbf;
+  border: 1px solid rgba(123,44,191,0.2);
+}
+
+.tech-chip.ct {
+  background: rgba(255,99,0,0.08);
+  color: #cc4e00;
+  border: 1px solid rgba(255,99,0,0.2);
+}
+
+.exam-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.exam-chip.echo { background: rgba(0,168,150,0.1); color: #00a896; border:1px solid rgba(0,168,150,0.2); }
+.exam-chip.eeg  { background: rgba(0,119,182,0.1); color: var(--primary-dark); border:1px solid rgba(0,119,182,0.2); }
+.exam-chip.emg  { background: rgba(255,158,0,0.1); color: #b36a00; border:1px solid rgba(255,158,0,0.2); }
+.exam-chip.fourD{ background: rgba(233,69,96,0.1); color: #c0392b; border:1px solid rgba(233,69,96,0.2); }
+
+.shift-morning {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: #e67e00;
+  background: rgba(255,158,0,0.1);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.shift-evening {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: #0077b6;
+  background: rgba(0,119,182,0.1);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.time-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--text-med);
+  font-weight: 600;
+}
+
+.action-btns {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+/* ====== BUTTONS ====== */
+.btn {
+  font-family: 'Cairo', sans-serif;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  transition: var(--transition);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  border: none;
+  outline: none;
+}
+
+.btn:focus { box-shadow: none; }
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: #fff;
+  padding: 8px 18px;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, var(--primary-dark), #005a8c);
+  color: #fff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0,119,182,0.35);
+}
+
+.btn-success-soft {
+  background: rgba(6,214,160,0.12);
+  color: #038c5a;
+  padding: 8px 18px;
+  border: 1px solid rgba(6,214,160,0.25);
+}
+
+.btn-success-soft:hover {
+  background: rgba(6,214,160,0.22);
+  color: #026040;
+}
+
+.btn-outline {
+  background: transparent;
+  color: var(--text-med);
+  padding: 8px 18px;
+  border: 1px solid var(--border);
+}
+
+.btn-outline:hover {
+  background: var(--body-bg);
+  color: var(--text-dark);
+}
+
+.btn-danger-soft {
+  background: rgba(239,35,60,0.08);
+  color: var(--danger);
+  padding: 6px 10px;
+  font-size: 12px;
+}
+
+.btn-danger-soft:hover {
+  background: rgba(239,35,60,0.16);
+}
+
+.btn-edit-soft {
+  background: rgba(0,180,216,0.1);
+  color: var(--primary-dark);
+  padding: 6px 10px;
+  font-size: 12px;
+}
+
+.btn-edit-soft:hover {
+  background: rgba(0,180,216,0.2);
+}
+
+.btn-sm { padding: 5px 12px; font-size: 12px; }
+.btn-icon { padding: 7px; width: 34px; height: 34px; justify-content: center; }
+
+.btn-nav {
+  background: #fff;
+  border: 1px solid var(--border);
+  color: var(--text-med);
+  padding: 7px 14px;
+  border-radius: var(--radius-sm);
+  font-family: 'Cairo', sans-serif;
+  font-size: 13px;
+  cursor: pointer;
+  transition: var(--transition);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-nav:hover {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}
+
+.btn-today {
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  color: #fff;
+  border: none;
+  padding: 7px 16px;
+  border-radius: var(--radius-sm);
+  font-family: 'Cairo', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+/* ====== MODAL ====== */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10,22,40,0.7);
+  backdrop-filter: blur(4px);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.modal-overlay.show {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.modal-box {
+  background: #fff;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  width: 100%;
+  max-width: 540px;
+  max-height: 90vh;
+  overflow-y: auto;
+  transform: translateY(20px);
+  transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+}
+
+.modal-overlay.show .modal-box { transform: translateY(0); }
+
+.modal-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(135deg, #f8fafc, #f0f4f8);
+}
+
+.modal-header h4 {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-dark);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.modal-header h4 i { color: var(--primary); }
+
+.modal-body { padding: 24px; }
+.modal-footer {
+  padding: 16px 24px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  background: #fafbfd;
+}
+
+.btn-close-modal {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-light);
+  font-size: 20px;
+  line-height: 1;
+  padding: 2px;
+  transition: var(--transition);
+}
+
+.btn-close-modal:hover { color: var(--danger); }
+
+/* Form Elements */
+.form-group { margin-bottom: 16px; }
+
+.form-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-med);
+  margin-bottom: 6px;
+}
+
+.form-label span { color: var(--danger); margin-right: 2px; }
+
+.form-control {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-family: 'Cairo', sans-serif;
+  font-size: 14px;
+  color: var(--text-dark);
+  background: #fff;
+  outline: none;
+  transition: var(--transition);
+}
+
+.form-control:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(0,180,216,0.12);
+}
+
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+/* ====== EMPTY STATE ====== */
+.empty-state {
+  text-align: center;
+  padding: 60px 24px;
+  color: var(--text-light);
+}
+
+.empty-state .empty-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: rgba(0,180,216,0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  color: var(--primary-light);
+  margin: 0 auto 16px;
+}
+
+.empty-state h4 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-med);
+  margin-bottom: 6px;
+}
+
+.empty-state p {
+  font-size: 13px;
+}
+
+/* ====== TOAST ====== */
+.toast-container {
+  position: fixed;
+  bottom: 24px;
+  left: 24px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.toast {
+  background: var(--sidebar-bg);
+  color: #fff;
+  padding: 14px 18px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-family: 'Cairo', sans-serif;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: var(--shadow-lg);
+  border-right: 3px solid var(--primary);
+  animation: slideInToast 0.3s ease, fadeOutToast 0.3s ease 2.7s forwards;
+  min-width: 240px;
+  max-width: 380px;
+}
+
+.toast.success { border-color: var(--success); }
+.toast.danger { border-color: var(--danger); }
+.toast.warning { border-color: var(--warning); }
+
+@keyframes slideInToast {
+  from { transform: translateX(-20px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes fadeOutToast {
+  to { opacity: 0; transform: translateX(-20px); }
+}
+
+/* ====== DASHBOARD ====== */
+.welcome-banner {
+  background: linear-gradient(135deg, var(--sidebar-bg) 0%, #112240 60%, #0d3460 100%);
+  border-radius: var(--radius);
+  padding: 28px 32px;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  overflow: hidden;
+  position: relative;
+}
+
+.welcome-banner::before {
+  content: '';
+  position: absolute;
+  top: -40px;
+  left: -40px;
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(0,245,212,0.12), transparent 70%);
+}
+
+.welcome-banner::after {
+  content: '';
+  position: absolute;
+  bottom: -60px;
+  right: 100px;
+  width: 250px;
+  height: 250px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(0,180,216,0.08), transparent 70%);
+}
+
+.welcome-text h2 {
+  font-size: 22px;
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: 6px;
+}
+
+.welcome-text p {
+  font-size: 14px;
+  color: rgba(255,255,255,0.6);
+}
+
+.welcome-icon {
+  font-size: 64px;
+  opacity: 0.2;
+  position: relative;
+  z-index: 1;
+}
+
+/* Export dropdown */
+.export-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.export-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-md);
+  min-width: 220px;
+  z-index: 500;
+  display: none;
+  overflow: hidden;
+}
+
+.export-menu.show { display: block; }
+
+.export-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 16px;
+  font-size: 13.5px;
+  font-family: 'Cairo', sans-serif;
+  color: var(--text-dark);
+  cursor: pointer;
+  transition: var(--transition);
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: right;
+  font-weight: 500;
+}
+
+.export-menu-item:hover { background: var(--body-bg); }
+.export-menu-item i { color: var(--primary); width: 18px; }
+.export-menu-divider { height: 1px; background: var(--border); margin: 4px 0; }
+
+/* Print */
+@media print {
+  .sidebar, .topbar, .week-navigator, .topbar-actions, .action-btns,
+  .filters-bar, .section-card-header .btn, .btn-nav, .btn-today,
+  .export-dropdown, .modal-overlay, .toast-container { display: none !important; }
+
+  body { background: #fff !important; }
+  .main-content { margin-right: 0 !important; }
+  .page-content { padding: 0 !important; }
+  .section-card { box-shadow: none !important; border: 1px solid #ddd !important; }
+
+  .print-header {
+    display: flex !important;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 0 12px;
+    border-bottom: 2px solid #0077b6;
+    margin-bottom: 20px;
+  }
+}
+
+.print-header { display: none; }
+
+/* Responsive */
+@media (max-width: 992px) {
+  .sidebar { width: 72px; min-width: 72px; }
+  .sidebar .center-name, .sidebar .week-badge, .sidebar .nav-section-label,
+  .sidebar .nav-link-item span { display: none; }
+  .logo-container { justify-content: center; }
+  .main-content { margin-right: 72px; }
+  .nav-link-item { justify-content: center; padding: 12px; }
+  .nav-link-item .nav-icon { margin: 0; }
+  .sidebar-header { padding: 16px 8px; }
+}
+
+@media (max-width: 768px) {
+  .sidebar { display: none; }
+  .main-content { margin-right: 0; }
+  .page-content { padding: 16px; }
+  .topbar { padding: 0 16px; }
+  .week-navigator { padding: 10px 16px; flex-wrap: wrap; }
+  .stat-cards { grid-template-columns: 1fr 1fr; }
+  .form-row { grid-template-columns: 1fr; }
+  .week-label { min-width: auto; font-size: 13px; }
+}
+
+/* scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(0,180,216,0.3); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: var(--primary); }
+
+/* Confirmation Dialog */
+.confirm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10,22,40,0.75);
+  backdrop-filter: blur(4px);
+  z-index: 3000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+.confirm-overlay.show { opacity: 1; pointer-events: all; }
+.confirm-box {
+  background: #fff;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  padding: 28px;
+  max-width: 380px;
+  width: 90%;
+  text-align: center;
+  transform: scale(0.95);
+  transition: transform 0.2s;
+}
+.confirm-overlay.show .confirm-box { transform: scale(1); }
+.confirm-icon { font-size: 42px; margin-bottom: 12px; }
+.confirm-box h4 { font-size: 17px; font-weight: 700; margin-bottom: 8px; color: var(--text-dark); }
+.confirm-box p { font-size: 13.5px; color: var(--text-light); margin-bottom: 20px; }
+.confirm-btns { display: flex; gap: 10px; justify-content: center; }
+
+/* Copy week btn */
+.btn-copy-week {
+  background: linear-gradient(135deg, rgba(6,214,160,0.15), rgba(0,245,212,0.08));
+  color: #038c5a;
+  border: 1px solid rgba(6,214,160,0.3);
+  padding: 7px 14px;
+  border-radius: var(--radius-sm);
+  font-family: 'Cairo', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.btn-copy-week:hover { background: rgba(6,214,160,0.25); }
+</style>
+</head>
+<body>
+
+<div class="app-wrapper">
+
+  <!-- ===== SIDEBAR ===== -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="logo-container" onclick="document.getElementById('logoFileInput').click()">
+        <div class="logo-wrap">
+          <div id="logoDisplay">
+            <!-- SVG Logo Recreation -->
+            <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="circleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style="stop-color:#00f5d4"/>
+                  <stop offset="100%" style="stop-color:#00b4d8"/>
+                </linearGradient>
+              </defs>
+              <circle cx="100" cy="90" r="72" fill="url(#circleGrad)" opacity="0.9"/>
+              <circle cx="100" cy="90" r="52" fill="#0a1628"/>
+              <rect x="82" y="58" width="12" height="64" rx="4" fill="url(#circleGrad)"/>
+              <rect x="100" y="68" width="12" height="54" rx="4" fill="url(#circleGrad)" opacity="0.8"/>
+              <rect x="64" y="72" width="12" height="50" rx="4" fill="url(#circleGrad)" opacity="0.6"/>
+            </svg>
+          </div>
+          <div class="logo-upload-hint">
+            <span>تغيير<br>الشعار</span>
+          </div>
+        </div>
+        <div class="center-name">
+          <h1>سيف سكان</h1>
+          <span>مراكز الأشعة التشخيصية</span>
+        </div>
+      </div>
+      <input type="file" id="logoFileInput" accept="image/*">
+      <div class="week-badge">
+        <i class="fas fa-calendar-week"></i>
+        <span id="sidebarWeekLabel">الأسبوع الحالي</span>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">القائمة الرئيسية</div>
+
+      <div class="nav-item">
+        <button class="nav-link-item active" onclick="showPage('dashboard')">
+          <div class="nav-icon"><i class="fas fa-chart-pie"></i></div>
+          <span>لوحة التحكم</span>
+        </button>
+      </div>
+
+      <div class="nav-section-label">الجداول</div>
+
+      <div class="nav-item">
+        <button class="nav-link-item" onclick="showPage('sonnar')">
+          <div class="nav-icon"><i class="fas fa-stethoscope"></i></div>
+          <span>جدول أطباء السونار</span>
+        </button>
+      </div>
+
+      <div class="nav-item">
+        <button class="nav-link-item" onclick="showPage('technicians')">
+          <div class="nav-icon"><i class="fas fa-user-cog"></i></div>
+          <span>جدول الفنيين</span>
+        </button>
+      </div>
+
+      <div class="nav-item">
+        <button class="nav-link-item" onclick="showPage('exams')">
+          <div class="nav-icon"><i class="fas fa-heartbeat"></i></div>
+          <span>الفحوصات الخارجيه</span>
+        </button>
+      </div>
+
+      <div class="nav-section-label">الأدوات</div>
+
+      <div class="nav-item">
+        <button class="nav-link-item" onclick="printAll()">
+          <div class="nav-icon"><i class="fas fa-print"></i></div>
+          <span>طباعة الجداول</span>
+        </button>
+      </div>
+
+      <div class="nav-item">
+        <button class="nav-link-item" onclick="exportAllPDF()">
+          <div class="nav-icon"><i class="fas fa-file-pdf"></i></div>
+          <span>تصدير PDF شامل</span>
+        </button>
+      </div>
+
+      <div class="nav-item">
+        <button class="nav-link-item" onclick="exportAllDOC()">
+          <div class="nav-icon"><i class="fas fa-file-word"></i></div>
+          <span>تصدير Word شامل</span>
+        </button>
+      </div>
+    </nav>
+
+    <div class="sidebar-footer">
+      <p>تطبيق ادارة الجداول من ام دي تك v1.0</p>
+      <p style="margin-top:4px; color:rgba(255,255,255,0.15);">حفظ تلقائي مفعّل</p>
+    </div>
+  </aside>
+
+  <!-- ===== MAIN CONTENT ===== -->
+  <main class="main-content">
+
+    <!-- TOP BAR -->
+    <div class="topbar">
+      <div class="topbar-title">
+        <div class="page-icon"><i class="fas fa-chart-pie" id="topbarIcon"></i></div>
+        <h2 id="topbarTitle">لوحة التحكم</h2>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn btn-outline btn-sm" onclick="printAll()">
+          <i class="fas fa-print"></i> طباعة
+        </button>
+        <div class="export-dropdown">
+          <button class="btn btn-primary btn-sm" onclick="toggleExportMenu(this)">
+            <i class="fas fa-download"></i> تصدير <i class="fas fa-chevron-down" style="font-size:10px;"></i>
+          </button>
+          <div class="export-menu" id="globalExportMenu">
+            <div class="export-menu-item" onclick="exportCurrentPDF()"><i class="fas fa-file-pdf"></i> تصدير الجدول الحالي - PDF</div>
+            <div class="export-menu-item" onclick="exportCurrentDOC()"><i class="fas fa-file-word"></i> تصدير الجدول الحالي - Word</div>
+            <div class="export-menu-divider"></div>
+            <div class="export-menu-item" onclick="exportAllPDF()"><i class="fas fa-file-pdf"></i> تصدير جميع الجداول - PDF</div>
+            <div class="export-menu-item" onclick="exportAllDOC()"><i class="fas fa-file-word"></i> تصدير جميع الجداول - Word</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WEEK NAVIGATOR -->
+    <div class="week-navigator">
+      <div class="week-nav-group">
+        <button class="btn-nav" onclick="changeWeek(-1)"><i class="fas fa-chevron-right"></i> الأسبوع السابق</button>
+        <button class="btn-today" onclick="goToCurrentWeek()">هذا الأسبوع</button>
+        <button class="btn-nav" onclick="changeWeek(1)">الأسبوع التالي <i class="fas fa-chevron-left"></i></button>
+      </div>
+      <div class="week-label" id="weekRangeLabel">جاري التحميل...</div>
+      <div class="week-nav-group">
+        <button class="btn-copy-week" onclick="copyPrevWeek()">
+          <i class="fas fa-copy"></i> نسخ من الأسبوع السابق
+        </button>
+      </div>
+    </div>
+
+    <!-- ===== DASHBOARD ===== -->
+    <div class="page-content">
+      <div class="page-section active" id="page-dashboard">
+
+        <div class="welcome-banner">
+          <div class="welcome-text">
+            <h2>مرحباً بك في نظام إدارة جداول سيف سكان 👋</h2>
+            <p>إدارة جداول أطباء السونار والفنيين والفحوصات بكل سهولة واحترافية</p>
+          </div>
+          <div class="welcome-icon">🏥</div>
+        </div>
+
+        <div class="stat-cards">
+          <div class="stat-card">
+            <div class="stat-icon blue"><i class="fas fa-user-md"></i></div>
+            <div class="stat-info">
+              <h3 id="statDoctors">6</h3>
+              <p>أطباء السونار</p>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon green"><i class="fas fa-user-cog"></i></div>
+            <div class="stat-info">
+              <h3 id="statTechs">6</h3>
+              <p>الفنيون</p>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon purple"><i class="fas fa-heartbeat"></i></div>
+            <div class="stat-info">
+              <h3 id="statExamEntries">0</h3>
+              <p>فحوصات مجدولة هذا الأسبوع</p>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon orange"><i class="fas fa-calendar-check"></i></div>
+            <div class="stat-info">
+              <h3 id="statSonnarEntries">0</h3>
+              <p>شيفتات السونار هذا الأسبوع</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-card">
+          <div class="section-card-header">
+            <h3><i class="fas fa-eye"></i> نظرة سريعة على جدول السونار</h3>
+            <button class="btn btn-primary btn-sm" onclick="showPage('sonnar')">
+              <i class="fas fa-arrow-left"></i> عرض الكامل
+            </button>
+          </div>
+          <div class="section-card-body">
+            <div class="schedule-table-wrap">
+              <table class="schedule-table" id="dashSonnarTable">
+                <thead>
+                  <tr>
+                    <th>اليوم</th>
+                    <th>الطبيب الصباحي <small style="opacity:0.7;">(10ص - 3م)</small></th>
+                    <th>الطبيب المسائي <small style="opacity:0.7;">(3م - 8م)</small></th>
+                  </tr>
+                </thead>
+                <tbody id="dashSonnarBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== SONNAR PAGE ===== -->
+      <div class="page-section" id="page-sonnar">
+        <div class="section-card">
+          <div class="section-card-header">
+            <h3><i class="fas fa-stethoscope"></i> جدول أطباء السونار الأسبوعي</h3>
+            <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+              <button class="btn btn-success-soft btn-sm" onclick="openModal('sonnar')">
+                <i class="fas fa-plus"></i> إضافة إدخال
+              </button>
+              <div class="export-dropdown">
+                <button class="btn btn-outline btn-sm" onclick="toggleExportMenu(this)">
+                  <i class="fas fa-download"></i> تصدير <i class="fas fa-chevron-down" style="font-size:10px;"></i>
+                </button>
+                <div class="export-menu">
+                  <div class="export-menu-item" onclick="exportTablePDF('sonnar')"><i class="fas fa-file-pdf"></i> تصدير PDF</div>
+                  <div class="export-menu-item" onclick="exportTableDOC('sonnar')"><i class="fas fa-file-word"></i> تصدير Word (.doc)</div>
+                  <div class="export-menu-item" onclick="printTable('sonnar')"><i class="fas fa-print"></i> طباعة</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="section-card-body">
+            <div class="filters-bar">
+              <div class="search-wrapper">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="بحث باسم الطبيب..." oninput="filterTable('sonnar', this.value)" id="sonnarSearch">
+              </div>
+              <div class="filter-group">
+                <label>اليوم:</label>
+                <select class="filter-select" onchange="filterByDay('sonnar', this.value)" id="sonnarDayFilter">
+                  <option value="">كل الأيام</option>
+                  <option>السبت</option><option>الأحد</option><option>الاثنين</option>
+                  <option>الثلاثاء</option><option>الأربعاء</option><option>الخميس</option><option>الجمعة</option>
+                </select>
+              </div>
+              <div class="filter-group">
+                <label>الطبيب:</label>
+                <select class="filter-select" onchange="filterByDoctor('sonnar', this.value)" id="sonnarDocFilter">
+                  <option value="">كل الأطباء</option>
+                </select>
+              </div>
+            </div>
+            <div class="schedule-table-wrap">
+              <table class="schedule-table">
+                <thead>
+                  <tr>
+                    <th>اليوم</th>
+                    <th>الطبيب الصباحي <small style="opacity:0.7;">(10:00 ص - 3:00 م)</small></th>
+                    <th>الطبيب المسائي <small style="opacity:0.7;">(3:00 م - 8:00 م)</small></th>
+                    <th>الإجراءات</th>
+                  </tr>
+                </thead>
+                <tbody id="sonnarTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== TECHNICIANS PAGE ===== -->
+      <div class="page-section" id="page-technicians">
+        <div class="section-card">
+          <div class="section-card-header">
+            <h3><i class="fas fa-user-cog"></i> جدول الفنيين الأسبوعي</h3>
+            <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+              <button class="btn btn-success-soft btn-sm" onclick="openModal('technicians')">
+                <i class="fas fa-plus"></i> إضافة فني
+              </button>
+              <div class="export-dropdown">
+                <button class="btn btn-outline btn-sm" onclick="toggleExportMenu(this)">
+                  <i class="fas fa-download"></i> تصدير <i class="fas fa-chevron-down" style="font-size:10px;"></i>
+                </button>
+                <div class="export-menu">
+                  <div class="export-menu-item" onclick="exportTablePDF('technicians')"><i class="fas fa-file-pdf"></i> تصدير PDF</div>
+                  <div class="export-menu-item" onclick="exportTableDOC('technicians')"><i class="fas fa-file-word"></i> تصدير Word (.doc)</div>
+                  <div class="export-menu-item" onclick="printTable('technicians')"><i class="fas fa-print"></i> طباعة</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="section-card-body">
+            <div class="filters-bar">
+              <div class="search-wrapper">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="بحث باسم الفني..." oninput="filterTable('technicians', this.value)" id="techSearch">
+              </div>
+              <div class="filter-group">
+                <label>اليوم:</label>
+                <select class="filter-select" onchange="filterByDay('technicians', this.value)" id="techDayFilter">
+                  <option value="">كل الأيام</option>
+                  <option>السبت</option><option>الأحد</option><option>الاثنين</option>
+                  <option>الثلاثاء</option><option>الأربعاء</option><option>الخميس</option><option>الجمعة</option>
+                </select>
+              </div>
+              <div class="filter-group">
+                <label>التخصص:</label>
+                <select class="filter-select" onchange="filterBySpec('technicians', this.value)" id="techSpecFilter">
+                  <option value="">الكل</option>
+                  <option value="MRI">الرنين (MRI)</option>
+                  <option value="CT">المقطعية (CT)</option>
+                </select>
+              </div>
+              <div class="filter-group">
+                <label>الفني:</label>
+                <select class="filter-select" onchange="filterByTech(this.value)" id="techNameFilter">
+                  <option value="">كل الفنيين</option>
+                </select>
+              </div>
+            </div>
+            <div class="schedule-table-wrap">
+              <table class="schedule-table">
+                <thead>
+                  <tr>
+                    <th>اليوم</th>
+                    <th>اسم الفني</th>
+                    <th>التخصص</th>
+                    <th>وقت العمل</th>
+                    <th>الإجراءات</th>
+                  </tr>
+                </thead>
+                <tbody id="techTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== EXAMS PAGE ===== -->
+      <div class="page-section" id="page-exams">
+        <div class="section-card">
+          <div class="section-card-header">
+            <h3><i class="fas fa-heartbeat"></i> جدول الفحوصات الخارجيه</h3>
+            <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+              <button class="btn btn-success-soft btn-sm" onclick="openModal('exams')">
+                <i class="fas fa-plus"></i> إضافة فحص
+              </button>
+              <div class="export-dropdown">
+                <button class="btn btn-outline btn-sm" onclick="toggleExportMenu(this)">
+                  <i class="fas fa-download"></i> تصدير <i class="fas fa-chevron-down" style="font-size:10px;"></i>
+                </button>
+                <div class="export-menu">
+                  <div class="export-menu-item" onclick="exportTablePDF('exams')"><i class="fas fa-file-pdf"></i> تصدير PDF</div>
+                  <div class="export-menu-item" onclick="exportTableDOC('exams')"><i class="fas fa-file-word"></i> تصدير Word (.doc)</div>
+                  <div class="export-menu-item" onclick="printTable('exams')"><i class="fas fa-print"></i> طباعة</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="section-card-body">
+            <div class="filters-bar">
+              <div class="search-wrapper">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="بحث..." oninput="filterTable('exams', this.value)" id="examSearch">
+              </div>
+              <div class="filter-group">
+                <label>اليوم:</label>
+                <select class="filter-select" onchange="filterByDay('exams', this.value)" id="examDayFilter">
+                  <option value="">كل الأيام</option>
+                  <option>السبت</option><option>الأحد</option><option>الاثنين</option>
+                  <option>الثلاثاء</option><option>الأربعاء</option><option>الخميس</option><option>الجمعة</option>
+                </select>
+              </div>
+              <div class="filter-group">
+                <label>نوع الفحص:</label>
+                <select class="filter-select" onchange="filterByExamType(this.value)" id="examTypeFilter">
+                  <option value="">الكل</option>
+                  <option>Echo</option><option>EEG</option><option>EMG</option><option>4D</option>
+                </select>
+              </div>
+              <div class="filter-group">
+                <label>الطبيب:</label>
+                <select class="filter-select" onchange="filterByDoctor('exams', this.value)" id="examDocFilter">
+                  <option value="">كل الأطباء</option>
+                </select>
+              </div>
+            </div>
+            <div class="schedule-table-wrap">
+              <table class="schedule-table">
+                <thead>
+                  <tr>
+                    <th>اليوم</th>
+                    <th>نوع الفحص</th>
+                    <th>اسم الطبيب</th>
+                    <th>وقت البداية</th>
+                    <th>الإجراءات</th>
+                  </tr>
+                </thead>
+                <tbody id="examTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div><!-- /page-content -->
+
+  </main>
+</div><!-- /app-wrapper -->
+
+<!-- ===== MODALS ===== -->
+
+<!-- Sonnar Modal -->
+<div class="modal-overlay" id="modalSonnar">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h4><i class="fas fa-stethoscope"></i> <span id="modalSonnarTitle">إضافة إدخال - جدول السونار</span></h4>
+      <button class="btn-close-modal" onclick="closeModal('sonnar')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="sonnarEditId">
+      <div class="form-group">
+        <label class="form-label">اليوم <span>*</span></label>
+        <select class="form-control" id="sonnarDay">
+          <option value="">-- اختر اليوم --</option>
+          <option>السبت</option><option>الأحد</option><option>الاثنين</option>
+          <option>الثلاثاء</option><option>الأربعاء</option><option>الخميس</option><option>الجمعة</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">الطبيب الصباحي (10:00 ص - 3:00 م)</label>
+          <select class="form-control" id="sonnarMorning">
+            <option value="">-- لا يوجد --</option>
+            <option>د. وائل</option><option>د. حسونه</option><option>د. عمرو</option>
+            <option>د. مصطفي</option><option>د. بسمه</option><option>د. ولاء</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">الطبيب المسائي (3:00 م - 8:00 م)</label>
+          <select class="form-control" id="sonnarEvening">
+            <option value="">-- لا يوجد --</option>
+            <option>د. وائل</option><option>د. حسونه</option><option>د. عمرو</option>
+            <option>د. مصطفي</option><option>د. بسمه</option><option>د. ولاء</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">ملاحظات</label>
+        <textarea class="form-control" id="sonnarNotes" rows="2" placeholder="أي ملاحظات إضافية..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('sonnar')">إلغاء</button>
+      <button class="btn btn-primary" onclick="saveSonnar()">
+        <i class="fas fa-save"></i> حفظ
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Technicians Modal -->
+<div class="modal-overlay" id="modalTechnicians">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h4><i class="fas fa-user-cog"></i> <span id="modalTechTitle">إضافة فني</span></h4>
+      <button class="btn-close-modal" onclick="closeModal('technicians')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="techEditId">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">اليوم <span>*</span></label>
+          <select class="form-control" id="techDay">
+            <option value="">-- اختر اليوم --</option>
+            <option>السبت</option><option>الأحد</option><option>الاثنين</option>
+            <option>الثلاثاء</option><option>الأربعاء</option><option>الخميس</option><option>الجمعة</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">اسم الفني <span>*</span></label>
+          <select class="form-control" id="techName">
+            <option value="">-- اختر الفني --</option>
+            <option>أ.صالح</option><option>بدر</option><option>الديب</option>
+            <option>عبدالصبور</option><option>حرباوي</option><option>أ.اشرف</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">التخصص <span>*</span></label>
+          <select class="form-control" id="techSpec">
+            <option value="">-- التخصص --</option>
+            <option value="MRI">الرنين المغناطيسي (MRI)</option>
+            <option value="CT">المقطعية (CT)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">وقت العمل</label>
+          <input type="text" class="form-control" id="techTime" placeholder="مثال: 8:00 ص - 4:00 م">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">ملاحظات</label>
+        <textarea class="form-control" id="techNotes" rows="2" placeholder="أي ملاحظات..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('technicians')">إلغاء</button>
+      <button class="btn btn-primary" onclick="saveTech()">
+        <i class="fas fa-save"></i> حفظ
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Exams Modal -->
+<div class="modal-overlay" id="modalExams">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h4><i class="fas fa-heartbeat"></i> <span id="modalExamTitle">إضافة فحص</span></h4>
+      <button class="btn-close-modal" onclick="closeModal('exams')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="examEditId">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">اليوم <span>*</span></label>
+          <select class="form-control" id="examDay">
+            <option value="">-- اختر اليوم --</option>
+            <option>السبت</option><option>الأحد</option><option>الاثنين</option>
+            <option>الثلاثاء</option><option>الأربعاء</option><option>الخميس</option><option>الجمعة</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">نوع الفحص <span>*</span></label>
+          <select class="form-control" id="examType">
+            <option value="">-- نوع الفحص --</option>
+            <option>Echo</option><option>EEG</option><option>EMG</option><option>4D</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">اسم الطبيب <span>*</span></label>
+          <select class="form-control" id="examDoctor">
+            <option value="">-- اختر الطبيب --</option>
+            <option>د. أحمد فريد</option><option>د. محمد فرج</option>
+            <option>د. امنيه</option><option>د. حنان</option><option>---</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">وقت البداية <span>*</span></label>
+          <input type="text" class="form-control" id="examTime" placeholder="مثال: 10:00 ص">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">ملاحظات</label>
+        <textarea class="form-control" id="examNotes" rows="2" placeholder="أي ملاحظات..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('exams')">إلغاء</button>
+      <button class="btn btn-primary" onclick="saveExam()">
+        <i class="fas fa-save"></i> حفظ
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm Dialog -->
+<div class="confirm-overlay" id="confirmOverlay">
+  <div class="confirm-box">
+    <div class="confirm-icon" id="confirmIcon">⚠️</div>
+    <h4 id="confirmTitle">تأكيد العملية</h4>
+    <p id="confirmMsg">هل أنت متأكد؟</p>
+    <div class="confirm-btns">
+      <button class="btn btn-outline" onclick="closeConfirm()">إلغاء</button>
+      <button class="btn btn-primary" id="confirmOkBtn" onclick="confirmOk()">تأكيد</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+'use strict';
+
+// ===========================
+//  STATE
+// ===========================
+const DAYS = ['السبت','الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة'];
+const DOCTORS = ['د. أحمد سامي','د. سارة محمد','د. خالد يوسف','د. منى حسن','د. كريم عادل'];
+const TECHS = [
+  {name:'أحمد علي', spec:'MRI'},
+  {name:'محمد حسن', spec:'CT'},
+  {name:'محمود سمير', spec:'MRI'},
+  {name:'يوسف طارق', spec:'CT'},
+  {name:'كريم فتحي', spec:'MRI'}
+];
+
+let currentWeekOffset = 0;
+let currentPage = 'dashboard';
+let confirmCallback = null;
+
+// Filters state
+let filters = {
+  sonnar: { search:'', day:'', doctor:'' },
+  technicians: { search:'', day:'', spec:'', name:'' },
+  exams: { search:'', day:'', type:'', doctor:'' }
+};
+
+// ===========================
+//  WEEK HELPERS
+// ===========================
+function getWeekSaturday(offset = 0) {
+  const now = new Date();
+  const dayOfWeek = now.getDay(); // 0=Sun ... 6=Sat
+  // Saturday = 6
+  const diffToSat = (dayOfWeek === 6) ? 0 : (dayOfWeek + 1); // days since last Saturday
+  const sat = new Date(now);
+  sat.setDate(now.getDate() - diffToSat + offset * 7);
+  sat.setHours(0,0,0,0);
+  return sat;
+}
+
+function getWeekKey(offset = 0) {
+  const sat = getWeekSaturday(offset);
+  return `week_${sat.getFullYear()}_${sat.getMonth()+1}_${sat.getDate()}`;
+}
+
+function formatDateAr(date) {
+  return date.toLocaleDateString('ar-EG', {day:'numeric', month:'long', year:'numeric'});
+}
+
+function updateWeekLabel() {
+  const sat = getWeekSaturday(currentWeekOffset);
+  const fri = new Date(sat); fri.setDate(sat.getDate() + 6);
+  const label = `${formatDateAr(sat)} — ${formatDateAr(fri)}`;
+  document.getElementById('weekRangeLabel').textContent = label;
+  document.getElementById('sidebarWeekLabel').textContent =
+    currentWeekOffset === 0 ? 'هذا الأسبوع' :
+    currentWeekOffset < 0 ? `قبل ${Math.abs(currentWeekOffset)} أسبوع` :
+    `بعد ${currentWeekOffset} أسبوع`;
+}
+
+function changeWeek(delta) {
+  currentWeekOffset += delta;
+  updateWeekLabel();
+  renderAll();
+  updateStats();
+}
+
+function goToCurrentWeek() {
+  currentWeekOffset = 0;
+  updateWeekLabel();
+  renderAll();
+  updateStats();
+}
+
+// ===========================
+//  LOCAL STORAGE
+// ===========================
+function getStorage(table) {
+  const key = `seifscan_${table}_${getWeekKey(currentWeekOffset)}`;
+  return JSON.parse(localStorage.getItem(key) || '[]');
+}
+
+function setStorage(table, data) {
+  const key = `seifscan_${table}_${getWeekKey(currentWeekOffset)}`;
+  localStorage.setItem(key, JSON.stringify(data));
+}
+
+// ===========================
+//  PAGE NAVIGATION
+// ===========================
+function showPage(page) {
+  currentPage = page;
+  document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-link-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+
+  const pageMap = {
+    dashboard: { title:'لوحة التحكم', icon:'fa-chart-pie' },
+    sonnar: { title:'جدول أطباء السونار', icon:'fa-stethoscope' },
+    technicians: { title:'جدول الفنيين', icon:'fa-user-cog' },
+    exams: { title:'الفحوصات الخارجيه', icon:'fa-heartbeat' }
+  };
+
+  const p = pageMap[page] || pageMap.dashboard;
+  document.getElementById('topbarTitle').textContent = p.title;
+  document.getElementById('topbarIcon').className = 'fas ' + p.icon;
+
+  // Highlight sidebar
+  const btns = document.querySelectorAll('.nav-link-item');
+  btns.forEach(b => {
+    if (b.getAttribute('onclick') === `showPage('${page}')`) b.classList.add('active');
+  });
+
+  renderAll();
+}
+
+// ===========================
+//  RENDER
+// ===========================
+function renderAll() {
+  renderSonnar();
+  renderTech();
+  renderExam();
+  renderDashSonnar();
+  updateStats();
+  populateFilterDropdowns();
+}
+
+function applyFilters(data, table) {
+  const f = filters[table];
+  return data.filter(row => {
+    const str = JSON.stringify(row).toLowerCase();
+    if (f.search && !str.includes(f.search.toLowerCase())) return false;
+    if (f.day && row.day !== f.day) return false;
+    if (table === 'sonnar' && f.doctor) {
+      if (row.morning !== f.doctor && row.evening !== f.doctor) return false;
+    }
+    if (table === 'technicians' && f.spec && row.spec !== f.spec) return false;
+    if (table === 'technicians' && f.name && row.name !== f.name) return false;
+    if (table === 'exams' && f.type && row.type !== f.type) return false;
+    if (table === 'exams' && f.doctor && row.doctor !== f.doctor) return false;
+    return true;
+  });
+}
+
+// --- SONNAR ---
+function renderSonnar() {
+  const data = getStorage('sonnar');
+  const filtered = applyFilters(data, 'sonnar');
+  const tbody = document.getElementById('sonnarTableBody');
+
+  if (!filtered.length) {
+    tbody.innerHTML = `<tr><td colspan="4">
+      <div class="empty-state">
+        <div class="empty-icon"><i class="fas fa-stethoscope"></i></div>
+        <h4>لا توجد بيانات</h4>
+        <p>اضغط "إضافة إدخال" لبدء تنظيم جدول أطباء السونار لهذا الأسبوع</p>
+      </div>
+    </td></tr>`;
+    return;
+  }
+
+  const dayOrder = DAYS.reduce((a,d,i)=>(a[d]=i,a),{});
+  filtered.sort((a,b) => (dayOrder[a.day]||0) - (dayOrder[b.day]||0));
+
+  tbody.innerHTML = filtered.map(row => `
+    <tr data-id="${row.id}">
+      <td class="day-cell"><span class="day-badge"><i class="fas fa-calendar-day"></i> ${row.day}</span></td>
+      <td>
+        ${row.morning ? `<div class="doctor-chip"><div class="avatar">${row.morning[2]||'د'}</div>${row.morning}</div>
+          <br><span class="shift-morning"><i class="fas fa-sun"></i> 10:00 ص - 3:00 م</span>` : '<span style="color:#bbb; font-size:12px;">—</span>'}
+      </td>
+      <td>
+        ${row.evening ? `<div class="doctor-chip"><div class="avatar">${row.evening[2]||'د'}</div>${row.evening}</div>
+          <br><span class="shift-evening"><i class="fas fa-moon"></i> 3:00 م - 8:00 م</span>` : '<span style="color:#bbb; font-size:12px;">—</span>'}
+      </td>
+      <td>
+        <div class="action-btns">
+          <button class="btn btn-edit-soft btn-icon" onclick="editSonnar('${row.id}')" title="تعديل"><i class="fas fa-edit"></i></button>
+          <button class="btn btn-danger-soft btn-icon" onclick="deleteSonnar('${row.id}')" title="حذف"><i class="fas fa-trash"></i></button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function renderDashSonnar() {
+  const data = getStorage('sonnar');
+  const dayOrder = DAYS.reduce((a,d,i)=>(a[d]=i,a),{});
+  const sorted = [...data].sort((a,b)=>(dayOrder[a.day]||0)-(dayOrder[b.day]||0));
+  const tbody = document.getElementById('dashSonnarBody');
+
+  if (!sorted.length) {
+    tbody.innerHTML = `<tr><td colspan="3" style="text-align:center; padding:24px; color:#bbb; font-size:13px;">لا يوجد بيانات لهذا الأسبوع</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = sorted.map(row => `
+    <tr>
+      <td><span class="day-badge"><i class="fas fa-calendar-day"></i> ${row.day}</span></td>
+      <td>${row.morning ? `<div class="doctor-chip"><div class="avatar">${row.morning[2]||'د'}</div>${row.morning}</div>` : '—'}</td>
+      <td>${row.evening ? `<div class="doctor-chip"><div class="avatar">${row.evening[2]||'د'}</div>${row.evening}</div>` : '—'}</td>
+    </tr>
+  `).join('');
+}
+
+// --- TECH ---
+function renderTech() {
+  const data = getStorage('technicians');
+  const filtered = applyFilters(data, 'technicians');
+  const tbody = document.getElementById('techTableBody');
+
+  if (!filtered.length) {
+    tbody.innerHTML = `<tr><td colspan="5">
+      <div class="empty-state">
+        <div class="empty-icon"><i class="fas fa-user-cog"></i></div>
+        <h4>لا توجد بيانات</h4>
+        <p>اضغط "إضافة فني" لإدارة جدول الفنيين لهذا الأسبوع</p>
+      </div>
+    </td></tr>`;
+    return;
+  }
+
+  const dayOrder = DAYS.reduce((a,d,i)=>(a[d]=i,a),{});
+  filtered.sort((a,b) => (dayOrder[a.day]||0) - (dayOrder[b.day]||0));
+
+  tbody.innerHTML = filtered.map(row => `
+    <tr>
+      <td><span class="day-badge"><i class="fas fa-calendar-day"></i> ${row.day}</span></td>
+      <td><strong>${row.name}</strong>${row.notes ? `<br><small style="color:#888">${row.notes}</small>` : ''}</td>
+      <td><span class="tech-chip ${row.spec === 'MRI' ? 'mri' : 'ct'}">
+        <i class="fas ${row.spec==='MRI' ? 'fa-magnet' : 'fa-x-ray'}"></i>
+        ${row.spec === 'MRI' ? 'الرنين المغناطيسي (MRI)' : 'المقطعية (CT)'}
+      </span></td>
+      <td><span class="time-badge"><i class="fas fa-clock"></i> ${row.time || '—'}</span></td>
+      <td>
+        <div class="action-btns">
+          <button class="btn btn-edit-soft btn-icon" onclick="editTech('${row.id}')" title="تعديل"><i class="fas fa-edit"></i></button>
+          <button class="btn btn-danger-soft btn-icon" onclick="deleteTech('${row.id}')" title="حذف"><i class="fas fa-trash"></i></button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+// --- EXAMS ---
+function renderExam() {
+  const data = getStorage('exams');
+  const filtered = applyFilters(data, 'exams');
+  const tbody = document.getElementById('examTableBody');
+
+  if (!filtered.length) {
+    tbody.innerHTML = `<tr><td colspan="5">
+      <div class="empty-state">
+        <div class="empty-icon"><i class="fas fa-heartbeat"></i></div>
+        <h4>لا توجد فحوصات مجدولة</h4>
+        <p>اضغط "إضافة فحص" لجدولة الفحوصات الخارجيه</p>
+      </div>
+    </td></tr>`;
+    return;
+  }
+
+  const dayOrder = DAYS.reduce((a,d,i)=>(a[d]=i,a),{});
+  filtered.sort((a,b) => (dayOrder[a.day]||0) - (dayOrder[b.day]||0));
+
+  const examClasses = { Echo:'echo', EEG:'eeg', EMG:'emg', '4D':'fourD' };
+  const examIcons = { Echo:'fa-heart', EEG:'fa-brain', EMG:'fa-bolt', '4D':'fa-baby' };
+
+  tbody.innerHTML = filtered.map(row => `
+    <tr>
+      <td><span class="day-badge"><i class="fas fa-calendar-day"></i> ${row.day}</span></td>
+      <td><span class="exam-chip ${examClasses[row.type]||'echo'}">
+        <i class="fas ${examIcons[row.type]||'fa-heartbeat'}"></i> ${row.type}
+      </span></td>
+      <td>${row.doctor ? `<div class="doctor-chip"><div class="avatar">${row.doctor[2]||'د'}</div>${row.doctor}</div>` : '—'}</td>
+      <td><span class="time-badge"><i class="fas fa-clock"></i> ${row.time || '—'}</span></td>
+      <td>
+        <div class="action-btns">
+          <button class="btn btn-edit-soft btn-icon" onclick="editExam('${row.id}')" title="تعديل"><i class="fas fa-edit"></i></button>
+          <button class="btn btn-danger-soft btn-icon" onclick="deleteExam('${row.id}')" title="حذف"><i class="fas fa-trash"></i></button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+// ===========================
+//  STATS & FILTER DROPDOWNS
+// ===========================
+function updateStats() {
+  document.getElementById('statDoctors').textContent = DOCTORS.length;
+  document.getElementById('statTechs').textContent = TECHS.length;
+  document.getElementById('statExamEntries').textContent = getStorage('exams').length;
+  document.getElementById('statSonnarEntries').textContent = getStorage('sonnar').length;
+}
+
+function populateFilterDropdowns() {
+  // Sonnar doctor filter
+  const sonnarDocs = [...new Set(getStorage('sonnar').flatMap(r => [r.morning, r.evening].filter(Boolean)))];
+  updateSelect('sonnarDocFilter', sonnarDocs, 'كل الأطباء');
+
+  // Tech name filter
+  const techNames = [...new Set(getStorage('technicians').map(r => r.name).filter(Boolean))];
+  updateSelect('techNameFilter', techNames, 'كل الفنيين');
+
+  // Exam doctor filter
+  const examDocs = [...new Set(getStorage('exams').map(r => r.doctor).filter(Boolean))];
+  updateSelect('examDocFilter', examDocs, 'كل الأطباء');
+}
+
+function updateSelect(id, values, placeholder) {
+  const sel = document.getElementById(id);
+  if (!sel) return;
+  const cur = sel.value;
+  sel.innerHTML = `<option value="">${placeholder}</option>` +
+    values.map(v => `<option ${cur===v?'selected':''}>${v}</option>`).join('');
+}
+
+// ===========================
+//  FILTERS
+// ===========================
+function filterTable(table, val) {
+  filters[table].search = val;
+  if (table === 'sonnar') renderSonnar();
+  else if (table === 'technicians') renderTech();
+  else renderExam();
+}
+
+function filterByDay(table, val) {
+  filters[table].day = val;
+  if (table === 'sonnar') renderSonnar();
+  else if (table === 'technicians') renderTech();
+  else renderExam();
+}
+
+function filterByDoctor(table, val) {
+  filters[table].doctor = val;
+  if (table === 'sonnar') renderSonnar();
+  else renderExam();
+}
+
+function filterBySpec(table, val) {
+  filters[table].spec = val;
+  renderTech();
+}
+
+function filterByTech(val) {
+  filters.technicians.name = val;
+  renderTech();
+}
+
+function filterByExamType(val) {
+  filters.exams.type = val;
+  renderExam();
+}
+
+// ===========================
+//  MODAL
+// ===========================
+function openModal(table, editId = null) {
+  const overlay = document.getElementById(`modal${capitalize(table)}`);
+  overlay.classList.add('show');
+
+  if (table === 'sonnar') {
+    document.getElementById('sonnarEditId').value = editId || '';
+    document.getElementById('modalSonnarTitle').textContent = editId ? 'تعديل إدخال - جدول السونار' : 'إضافة إدخال - جدول السونار';
+    if (!editId) {
+      document.getElementById('sonnarDay').value = '';
+      document.getElementById('sonnarMorning').value = '';
+      document.getElementById('sonnarEvening').value = '';
+      document.getElementById('sonnarNotes').value = '';
+    } else {
+      const row = getStorage('sonnar').find(r => r.id === editId);
+      if (row) {
+        document.getElementById('sonnarDay').value = row.day;
+        document.getElementById('sonnarMorning').value = row.morning || '';
+        document.getElementById('sonnarEvening').value = row.evening || '';
+        document.getElementById('sonnarNotes').value = row.notes || '';
+      }
+    }
+  }
+
+  if (table === 'technicians') {
+    document.getElementById('techEditId').value = editId || '';
+    document.getElementById('modalTechTitle').textContent = editId ? 'تعديل بيانات الفني' : 'إضافة فني';
+    if (!editId) {
+      document.getElementById('techDay').value = '';
+      document.getElementById('techName').value = '';
+      document.getElementById('techSpec').value = '';
+      document.getElementById('techTime').value = '';
+      document.getElementById('techNotes').value = '';
+    } else {
+      const row = getStorage('technicians').find(r => r.id === editId);
+      if (row) {
+        document.getElementById('techDay').value = row.day;
+        document.getElementById('techName').value = row.name;
+        document.getElementById('techSpec').value = row.spec;
+        document.getElementById('techTime').value = row.time || '';
+        document.getElementById('techNotes').value = row.notes || '';
+      }
+    }
+  }
+
+  if (table === 'exams') {
+    document.getElementById('examEditId').value = editId || '';
+    document.getElementById('modalExamTitle').textContent = editId ? 'تعديل الفحص' : 'إضافة فحص';
+    if (!editId) {
+      document.getElementById('examDay').value = '';
+      document.getElementById('examType').value = '';
+      document.getElementById('examDoctor').value = '';
+      document.getElementById('examTime').value = '';
+      document.getElementById('examNotes').value = '';
+    } else {
+      const row = getStorage('exams').find(r => r.id === editId);
+      if (row) {
+        document.getElementById('examDay').value = row.day;
+        document.getElementById('examType').value = row.type;
+        document.getElementById('examDoctor').value = row.doctor || '';
+        document.getElementById('examTime').value = row.time || '';
+        document.getElementById('examNotes').value = row.notes || '';
+      }
+    }
+  }
+}
+
+function closeModal(table) {
+  document.getElementById(`modal${capitalize(table)}`).classList.remove('show');
+}
+
+function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+// ===========================
+//  SAVE / EDIT / DELETE
+// ===========================
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
+
+function saveSonnar() {
+  const day = document.getElementById('sonnarDay').value;
+  const morning = document.getElementById('sonnarMorning').value;
+  const evening = document.getElementById('sonnarEvening').value;
+  const notes = document.getElementById('sonnarNotes').value.trim();
+  const editId = document.getElementById('sonnarEditId').value;
+
+  if (!day) { showToast('يرجى اختيار اليوم', 'warning'); return; }
+  if (!morning && !evening) { showToast('يرجى إدخال طبيب صباحي أو مسائي على الأقل', 'warning'); return; }
+
+  const data = getStorage('sonnar');
+  if (editId) {
+    const idx = data.findIndex(r => r.id === editId);
+    if (idx > -1) data[idx] = { ...data[idx], day, morning, evening, notes };
+  } else {
+    data.push({ id: uid(), day, morning, evening, notes });
+  }
+  setStorage('sonnar', data);
+  closeModal('sonnar');
+  renderAll();
+  showToast(editId ? 'تم تحديث البيانات بنجاح' : 'تمت الإضافة بنجاح', 'success');
+}
+
+function editSonnar(id) { openModal('sonnar', id); }
+function deleteSonnar(id) {
+  showConfirm('حذف إدخال', 'هل أنت متأكد من حذف هذا الإدخال؟ لا يمكن التراجع عن هذا الإجراء.', '🗑️', () => {
+    const data = getStorage('sonnar').filter(r => r.id !== id);
+    setStorage('sonnar', data);
+    renderAll();
+    showToast('تم الحذف بنجاح', 'danger');
+  });
+}
+
+function saveTech() {
+  const day = document.getElementById('techDay').value;
+  const name = document.getElementById('techName').value;
+  const spec = document.getElementById('techSpec').value;
+  const time = document.getElementById('techTime').value.trim();
+  const notes = document.getElementById('techNotes').value.trim();
+  const editId = document.getElementById('techEditId').value;
+
+  if (!day || !name || !spec) { showToast('يرجى تعبئة الحقول المطلوبة', 'warning'); return; }
+
+  const data = getStorage('technicians');
+  if (editId) {
+    const idx = data.findIndex(r => r.id === editId);
+    if (idx > -1) data[idx] = { ...data[idx], day, name, spec, time, notes };
+  } else {
+    data.push({ id: uid(), day, name, spec, time, notes });
+  }
+  setStorage('technicians', data);
+  closeModal('technicians');
+  renderAll();
+  showToast(editId ? 'تم تحديث بيانات الفني' : 'تمت إضافة الفني بنجاح', 'success');
+}
+
+function editTech(id) { openModal('technicians', id); }
+function deleteTech(id) {
+  showConfirm('حذف فني', 'هل أنت متأكد من حذف هذا الفني من الجدول؟', '🗑️', () => {
+    const data = getStorage('technicians').filter(r => r.id !== id);
+    setStorage('technicians', data);
+    renderAll();
+    showToast('تم الحذف', 'danger');
+  });
+}
+
+function saveExam() {
+  const day = document.getElementById('examDay').value;
+  const type = document.getElementById('examType').value;
+  const doctor = document.getElementById('examDoctor').value;
+  const time = document.getElementById('examTime').value.trim();
+  const notes = document.getElementById('examNotes').value.trim();
+  const editId = document.getElementById('examEditId').value;
+
+  if (!day || !type) { showToast('يرجى تعبئة الحقول المطلوبة', 'warning'); return; }
+
+  const data = getStorage('exams');
+  if (editId) {
+    const idx = data.findIndex(r => r.id === editId);
+    if (idx > -1) data[idx] = { ...data[idx], day, type, doctor, time, notes };
+  } else {
+    data.push({ id: uid(), day, type, doctor, time, notes });
+  }
+  setStorage('exams', data);
+  closeModal('exams');
+  renderAll();
+  showToast(editId ? 'تم تحديث الفحص' : 'تمت إضافة الفحص بنجاح', 'success');
+}
+
+function editExam(id) { openModal('exams', id); }
+function deleteExam(id) {
+  showConfirm('حذف فحص', 'هل تريد حذف هذا الفحص من الجدول؟', '🗑️', () => {
+    const data = getStorage('exams').filter(r => r.id !== id);
+    setStorage('exams', data);
+    renderAll();
+    showToast('تم الحذف', 'danger');
+  });
+}
+
+// ===========================
+//  COPY PREV WEEK
+// ===========================
+function copyPrevWeek() {
+  showConfirm(
+    'نسخ الأسبوع السابق',
+    'سيتم نسخ جميع بيانات الأسبوع السابق لهذا الأسبوع. هل تريد المتابعة؟ (سيتم الاستبدال فوق البيانات الحالية)',
+    '📋',
+    () => {
+      const prevOffset = currentWeekOffset - 1;
+      ['sonnar','technicians','exams'].forEach(table => {
+        const prevKey = `seifscan_${table}_${getWeekKey(prevOffset)}`;
+        const prevData = JSON.parse(localStorage.getItem(prevKey) || '[]');
+        // Assign new IDs
+        const newData = prevData.map(r => ({ ...r, id: uid() }));
+        setStorage(table, newData);
+      });
+      renderAll();
+      showToast('تم نسخ بيانات الأسبوع السابق بنجاح', 'success');
+    }
+  );
+}
+
+// ===========================
+//  EXPORT PDF
+// ===========================
+function getWeekHeaderText() {
+  const sat = getWeekSaturday(currentWeekOffset);
+  const fri = new Date(sat); fri.setDate(sat.getDate() + 6);
+  return `الأسبوع من ${formatDateAr(sat)} إلى ${formatDateAr(fri)}`;
+}
+
+function exportTablePDF(table) {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+  const titles = { sonnar:'جدول أطباء السونار', technicians:'جدول الفنيين', exams:'جدول الفحوصات الخارجيه' };
+
+  // Header
+  doc.setFontSize(18);
+  doc.setTextColor(0, 119, 182);
+  doc.text('مراكز سيف سكان للأشعة التشخيصية', 148, 18, { align:'center' });
+  doc.setFontSize(13);
+  doc.setTextColor(60, 60, 60);
+  doc.text(titles[table], 148, 27, { align:'center' });
+  doc.setFontSize(10);
+  doc.setTextColor(100, 100, 100);
+  doc.text(getWeekHeaderText(), 148, 34, { align:'center' });
+  doc.line(10, 38, 287, 38);
+
+  const data = getStorage(table);
+  const dayOrder = DAYS.reduce((a,d,i)=>(a[d]=i,a),{});
+  const sorted = [...data].sort((a,b)=>(dayOrder[a.day]||0)-(dayOrder[b.day]||0));
+
+  let head, body;
+  if (table === 'sonnar') {
+    head = [['اليوم','الطبيب الصباحي (10:00ص - 3:00م)','الطبيب المسائي (3:00م - 8:00م)','ملاحظات']];
+    body = sorted.map(r => [r.day, r.morning||'—', r.evening||'—', r.notes||'']);
+  } else if (table === 'technicians') {
+    head = [['اليوم','اسم الفني','التخصص','وقت العمل','ملاحظات']];
+    body = sorted.map(r => [r.day, r.name, r.spec==='MRI'?'الرنين (MRI)':'المقطعية (CT)', r.time||'—', r.notes||'']);
+  } else {
+    head = [['اليوم','نوع الفحص','اسم الطبيب','وقت البداية','ملاحظات']];
+    body = sorted.map(r => [r.day, r.type, r.doctor||'—', r.time||'—', r.notes||'']);
+  }
+
+  if (!body.length) body = [['لا توجد بيانات','','','','']];
+
+  doc.autoTable({
+    head, body, startY: 42,
+    styles: { font:'helvetica', fontSize:10, halign:'right', cellPadding:4 },
+    headStyles: { fillColor:[0,23,64], textColor:[255,255,255], fontStyle:'bold' },
+    alternateRowStyles: { fillColor:[240,248,255] },
+    theme:'striped'
+  });
+
+  // Footer
+  const pageCount = doc.internal.getNumberOfPages();
+  for (let i=1; i<=pageCount; i++) {
+    doc.setPage(i);
+    doc.setFontSize(8);
+    doc.setTextColor(150,150,150);
+    doc.text(`صفحة ${i} من ${pageCount}`, 148, doc.internal.pageSize.height - 8, { align:'center' });
+    doc.text('نظام إدارة الجداول - مراكز سيف سكان', 10, doc.internal.pageSize.height - 8);
+    doc.text(new Date().toLocaleDateString('ar-EG'), 287, doc.internal.pageSize.height - 8, { align:'right' });
+  }
+
+  doc.save(`${titles[table]}_${getWeekKey(currentWeekOffset)}.pdf`);
+  showToast('تم تصدير ملف PDF بنجاح', 'success');
+}
+
+function exportAllPDF() {
+  ['sonnar','technicians','exams'].forEach(t => exportTablePDF(t));
+  showToast('تم تصدير جميع الجداول بصيغة PDF', 'success');
+}
+
+// ===========================
+//  EXPORT DOC (Word)
+// ===========================
+function buildDocHTML(table) {
+  const titles = { sonnar:'جدول أطباء السونار', technicians:'جدول الفنيين', exams:'جدول الفحوصات الخارجيه' };
+  const data = getStorage(table);
+  const dayOrder = DAYS.reduce((a,d,i)=>(a[d]=i,a),{});
+  const sorted = [...data].sort((a,b)=>(dayOrder[a.day]||0)-(dayOrder[b.day]||0));
+
+  let tableHTML = '';
+  if (table === 'sonnar') {
+    tableHTML = `<table border="1" cellpadding="8" cellspacing="0" width="100%" style="border-collapse:collapse; direction:rtl;">
+      <thead style="background:#001740; color:#fff;">
+        <tr><th>اليوم</th><th>الطبيب الصباحي (10:00ص - 3:00م)</th><th>الطبيب المسائي (3:00م - 8:00م)</th><th>ملاحظات</th></tr>
+      </thead><tbody>`;
+    tableHTML += sorted.map((r,i) => `
+      <tr style="background:${i%2===0?'#f0f8ff':'#fff'}">
+        <td style="font-weight:bold">${r.day}</td>
+        <td>${r.morning||'—'}</td><td>${r.evening||'—'}</td><td>${r.notes||''}</td>
+      </tr>`).join('');
+    tableHTML += '</tbody></table>';
+  } else if (table === 'technicians') {
+    tableHTML = `<table border="1" cellpadding="8" cellspacing="0" width="100%" style="border-collapse:collapse; direction:rtl;">
+      <thead style="background:#001740; color:#fff;">
+        <tr><th>اليوم</th><th>اسم الفني</th><th>التخصص</th><th>وقت العمل</th><th>ملاحظات</th></tr>
+      </thead><tbody>`;
+    tableHTML += sorted.map((r,i) => `
+      <tr style="background:${i%2===0?'#f0f8ff':'#fff'}">
+        <td style="font-weight:bold">${r.day}</td><td>${r.name}</td>
+        <td>${r.spec==='MRI'?'الرنين (MRI)':'المقطعية (CT)'}</td>
+        <td>${r.time||'—'}</td><td>${r.notes||''}</td>
+      </tr>`).join('');
+    tableHTML += '</tbody></table>';
+  } else {
+    tableHTML = `<table border="1" cellpadding="8" cellspacing="0" width="100%" style="border-collapse:collapse; direction:rtl;">
+      <thead style="background:#001740; color:#fff;">
+        <tr><th>اليوم</th><th>نوع الفحص</th><th>اسم الطبيب</th><th>وقت البداية</th><th>ملاحظات</th></tr>
+      </thead><tbody>`;
+    tableHTML += sorted.map((r,i) => `
+      <tr style="background:${i%2===0?'#f0f8ff':'#fff'}">
+        <td style="font-weight:bold">${r.day}</td><td>${r.type}</td>
+        <td>${r.doctor||'—'}</td><td>${r.time||'—'}</td><td>${r.notes||''}</td>
+      </tr>`).join('');
+    tableHTML += '</tbody></table>';
+  }
+
+  return `
+    <html xmlns:o="urn:schemas-microsoft-com:office:office"
+          xmlns:w="urn:schemas-microsoft-com:office:word"
+          xmlns="http://www.w3.org/TR/REC-html40">
+    <head>
+      <meta charset="UTF-8">
+      <!--[if gte mso 9]>
+      <xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom></w:WordDocument></xml>
+      <![endif]-->
+      <style>
+        body { font-family: 'Arial', sans-serif; direction: rtl; }
+        h1 { color: #0077b6; text-align: center; }
+        h2 { color: #333; text-align: center; font-size: 14pt; }
+        h3 { color: #666; text-align: center; font-size: 11pt; }
+        .footer { text-align: center; color: #999; font-size: 9pt; margin-top: 24px; border-top: 1px solid #ddd; padding-top: 8px; }
+        table { font-size: 11pt; }
+        thead th { color: #fff !important; background-color: #001740 !important; }
+      </style>
+    </head>
+    <body>
+      <h1>مراكز سيف سكان للأشعة التشخيصية</h1>
+      <h2>${titles[table]}</h2>
+      <h3>${getWeekHeaderText()}</h3>
+      <br>
+      ${tableHTML}
+      <div class="footer">
+        <p>تاريخ الطباعة: ${new Date().toLocaleDateString('ar-EG')} — نظام إدارة الجداول الأسبوعية</p>
+        <p>التوقيع الإداري: _________________ &nbsp;&nbsp;&nbsp; المدير الطبي: _________________</p>
+      </div>
+    </body></html>`;
+}
+
+function exportTableDOC(table) {
+  const titles = { sonnar:'جدول أطباء السونار', technicians:'جدول الفنيين', exams:'جدول الفحوصات الخارجيه' };
+  const html = buildDocHTML(table);
+  const blob = new Blob(['\ufeff' + html], { type:'application/msword; charset=UTF-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${titles[table]}_${getWeekKey(currentWeekOffset)}.doc`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('تم تصدير ملف Word (.doc) بنجاح', 'success');
+}
+
+function exportAllDOC() {
+  ['sonnar','technicians','exams'].forEach(t => exportTableDOC(t));
+}
+
+// Current page export helpers
+function exportCurrentPDF() {
+  const map = { dashboard:'sonnar', sonnar:'sonnar', technicians:'technicians', exams:'exams' };
+  exportTablePDF(map[currentPage] || 'sonnar');
+}
+
+function exportCurrentDOC() {
+  const map = { dashboard:'sonnar', sonnar:'sonnar', technicians:'technicians', exams:'exams' };
+  exportTableDOC(map[currentPage] || 'sonnar');
+}
+
+// ===========================
+//  PRINT
+// ===========================
+function printTable(table) {
+  const titles = { sonnar:'جدول أطباء السونار', technicians:'جدول الفنيين', exams:'جدول الفحوصات الخارجيه' };
+  const html = buildDocHTML(table);
+  const win = window.open('', '_blank');
+  win.document.write(html);
+  win.document.close();
+  win.focus();
+  setTimeout(() => { win.print(); win.close(); }, 500);
+}
+
+function printAll() {
+  const allHTML = ['sonnar','technicians','exams'].map(t => buildDocHTML(t)).join('<div style="page-break-before:always"></div>');
+  const win = window.open('', '_blank');
+  win.document.write(allHTML);
+  win.document.close();
+  win.focus();
+  setTimeout(() => { win.print(); win.close(); }, 700);
+}
+
+// ===========================
+//  EXPORT MENU TOGGLE
+// ===========================
+function toggleExportMenu(btn) {
+  const menu = btn.nextElementSibling;
+  if (!menu) return;
+  const isOpen = menu.classList.contains('show');
+  document.querySelectorAll('.export-menu').forEach(m => m.classList.remove('show'));
+  if (!isOpen) menu.classList.add('show');
+}
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('.export-dropdown')) {
+    document.querySelectorAll('.export-menu').forEach(m => m.classList.remove('show'));
+  }
+});
+
+// ===========================
+//  CONFIRM DIALOG
+// ===========================
+function showConfirm(title, msg, icon='⚠️', callback) {
+  document.getElementById('confirmTitle').textContent = title;
+  document.getElementById('confirmMsg').textContent = msg;
+  document.getElementById('confirmIcon').textContent = icon;
+  confirmCallback = callback;
+  document.getElementById('confirmOverlay').classList.add('show');
+}
+
+function closeConfirm() {
+  document.getElementById('confirmOverlay').classList.remove('show');
+  confirmCallback = null;
+}
+
+function confirmOk() {
+  if (confirmCallback) confirmCallback();
+  closeConfirm();
+}
+
+// ===========================
+//  TOAST
+// ===========================
+function showToast(msg, type = 'success') {
+  const icons = { success:'✅', danger:'🗑️', warning:'⚠️' };
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.innerHTML = `<span>${icons[type]||'ℹ️'}</span> ${msg}`;
+  document.getElementById('toastContainer').appendChild(toast);
+  setTimeout(() => toast.remove(), 3200);
+}
+
+// ===========================
+//  LOGO UPLOAD
+// ===========================
+document.getElementById('logoFileInput').addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    const img = document.createElement('img');
+    img.src = ev.target.result;
+    img.style.cssText = 'width:100%;height:100%;object-fit:contain;';
+    const display = document.getElementById('logoDisplay');
+    display.innerHTML = '';
+    display.appendChild(img);
+    localStorage.setItem('seifscan_logo', ev.target.result);
+    showToast('تم تحديث الشعار بنجاح', 'success');
+  };
+  reader.readAsDataURL(file);
+});
+
+function loadSavedLogo() {
+  const saved = localStorage.getItem('seifscan_logo');
+  if (saved) {
+    const img = document.createElement('img');
+    img.src = saved;
+    img.style.cssText = 'width:100%;height:100%;object-fit:contain;';
+    const display = document.getElementById('logoDisplay');
+    display.innerHTML = '';
+    display.appendChild(img);
+  }
+}
+
+// ===========================
+//  SEED DEMO DATA
+// ===========================
+function seedDemoData() {
+  const weekKey = getWeekKey(0);
+  const sonnarKey = `seifscan_sonnar_${weekKey}`;
+  if (localStorage.getItem(sonnarKey)) return; // already seeded
+
+  const sonnar = [
+    { id:uid(), day:'السبت',   morning:'د. أحمد سامي',  evening:'د. سارة محمد',  notes:'' },
+    { id:uid(), day:'الأحد',   morning:'د. خالد يوسف',  evening:'د. منى حسن',    notes:'' },
+    { id:uid(), day:'الاثنين', morning:'د. كريم عادل',  evening:'د. أحمد سامي',  notes:'' },
+    { id:uid(), day:'الثلاثاء',morning:'د. سارة محمد',  evening:'د. خالد يوسف',  notes:'' },
+    { id:uid(), day:'الأربعاء',morning:'د. منى حسن',    evening:'د. كريم عادل',  notes:'' },
+    { id:uid(), day:'الخميس',  morning:'د. أحمد سامي',  evening:'د. سارة محمد',  notes:'' },
+    { id:uid(), day:'الجمعة',  morning:'د. خالد يوسف',  evening:'',              notes:'إجازة مسائية' },
+  ];
+
+  const techs = [
+    { id:uid(), day:'السبت',   name:'أحمد علي',    spec:'MRI', time:'8:00 ص - 4:00 م', notes:'' },
+    { id:uid(), day:'السبت',   name:'محمد حسن',    spec:'CT',  time:'8:00 ص - 4:00 م', notes:'' },
+    { id:uid(), day:'الأحد',   name:'محمود سمير',  spec:'MRI', time:'8:00 ص - 4:00 م', notes:'' },
+    { id:uid(), day:'الأحد',   name:'يوسف طارق',   spec:'CT',  time:'8:00 ص - 4:00 م', notes:'' },
+    { id:uid(), day:'الاثنين', name:'كريم فتحي',   spec:'MRI', time:'8:00 ص - 4:00 م', notes:'' },
+    { id:uid(), day:'الاثنين', name:'محمد حسن',    spec:'CT',  time:'2:00 م - 10:00 م', notes:'شيفت مسائي' },
+    { id:uid(), day:'الثلاثاء',name:'أحمد علي',    spec:'MRI', time:'8:00 ص - 4:00 م', notes:'' },
+    { id:uid(), day:'الأربعاء',name:'محمود سمير',  spec:'MRI', time:'8:00 ص - 4:00 م', notes:'' },
+    { id:uid(), day:'الأربعاء',name:'يوسف طارق',   spec:'CT',  time:'8:00 ص - 4:00 م', notes:'' },
+    { id:uid(), day:'الخميس',  name:'كريم فتحي',   spec:'MRI', time:'8:00 ص - 2:00 م', notes:'' },
+  ];
+
+  const exams = [
+    { id:uid(), day:'الأحد',   type:'Echo', doctor:'د. كريم عادل',  time:'10:00 ص', notes:'' },
+    { id:uid(), day:'الأحد',   type:'EEG',  doctor:'د. سارة محمد',  time:'1:00 م',  notes:'' },
+    { id:uid(), day:'الاثنين', type:'EMG',  doctor:'د. خالد يوسف',  time:'11:00 ص', notes:'' },
+    { id:uid(), day:'الثلاثاء',type:'4D',   doctor:'د. أحمد سامي',  time:'10:00 ص', notes:'' },
+    { id:uid(), day:'الأربعاء',type:'Echo', doctor:'د. منى حسن',    time:'12:00 م', notes:'' },
+    { id:uid(), day:'الخميس',  type:'EEG',  doctor:'د. كريم عادل',  time:'9:00 ص',  notes:'' },
+  ];
+
+  setStorage('sonnar', sonnar);
+  setStorage('technicians', techs);
+  setStorage('exams', exams);
+}
+
+// ===========================
+//  INIT
+// ===========================
+document.addEventListener('DOMContentLoaded', () => {
+  loadSavedLogo();
+  seedDemoData();
+  updateWeekLabel();
+  renderAll();
+
+  // Close modals on overlay click
+  document.querySelectorAll('.modal-overlay').forEach(overlay => {
+    overlay.addEventListener('click', e => {
+      if (e.target === overlay) {
+        const table = overlay.id.replace('modal','').toLowerCase();
+        closeModal(table);
+      }
+    });
+  });
+
+  // Close confirm on overlay
+  document.getElementById('confirmOverlay').addEventListener('click', e => {
+    if (e.target === document.getElementById('confirmOverlay')) closeConfirm();
+  });
+
+  // ESC key
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      document.querySelectorAll('.modal-overlay.show').forEach(m => {
+        const t = m.id.replace('modal','').toLowerCase();
+        closeModal(t);
+      });
+      closeConfirm();
+    }
+  });
+
+  showToast('مرحباً بك في نظام إدارة الجداول من إم دي تك 🏥', 'success');
+});
+</script>
+</body>
+</html>
