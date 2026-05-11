@@ -2358,7 +2358,7 @@ function exportTablePDF(table) {
 
   doc.autoTable({
     head, body, startY: 42,
-    styles: { font:'helvetica', fontSize:10, halign:'right', cellPadding:4 },
+    styles: { font:'Amiri', fontSize:10, halign:'right', cellPadding:4 },
     headStyles: { fillColor:[0,23,64], textColor:[255,255,255], fontStyle:'bold' },
     alternateRowStyles: { fillColor:[240,248,255] },
     theme:'striped'
@@ -2440,6 +2440,7 @@ function buildDocHTML(table) {
       <xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom></w:WordDocument></xml>
       <![endif]-->
       <style>
+       @page { size: A4 landscape; }
         body { font-family: 'Arial', sans-serif; direction: rtl; }
         h1 { color: #0077b6; text-align: center; }
         h2 { color: #333; text-align: center; font-size: 14pt; }
@@ -2615,16 +2616,16 @@ function seedDemoData() {
   ];
 
   const techs = [
-    { id:uid(), day:'السبت',   name:'أحمد علي',    spec:'MRI', time:'8:00 ص - 4:00 م', notes:'' },
-    { id:uid(), day:'السبت',   name:'محمد حسن',    spec:'CT',  time:'8:00 ص - 4:00 م', notes:'' },
-    { id:uid(), day:'الأحد',   name:'محمود سمير',  spec:'MRI', time:'8:00 ص - 4:00 م', notes:'' },
-    { id:uid(), day:'الأحد',   name:'يوسف طارق',   spec:'CT',  time:'8:00 ص - 4:00 م', notes:'' },
-    { id:uid(), day:'الاثنين', name:'كريم فتحي',   spec:'MRI', time:'8:00 ص - 4:00 م', notes:'' },
-    { id:uid(), day:'الاثنين', name:'محمد حسن',    spec:'CT',  time:'2:00 م - 10:00 م', notes:'شيفت مسائي' },
-    { id:uid(), day:'الثلاثاء',name:'أحمد علي',    spec:'MRI', time:'8:00 ص - 4:00 م', notes:'' },
-    { id:uid(), day:'الأربعاء',name:'محمود سمير',  spec:'MRI', time:'8:00 ص - 4:00 م', notes:'' },
-    { id:uid(), day:'الأربعاء',name:'يوسف طارق',   spec:'CT',  time:'8:00 ص - 4:00 م', notes:'' },
-    { id:uid(), day:'الخميس',  name:'كريم فتحي',   spec:'MRI', time:'8:00 ص - 2:00 م', notes:'' },
+    { id:uid(), day:'السبت',   name:'صالح',    spec:'MRI', time:'8:00 ص - 4:00 م', notes:'' },
+    { id:uid(), day:'السبت',   name:'حربو',    spec:'CT',  time:'8:00 ص - 4:00 م', notes:'' },
+    { id:uid(), day:'الأحد',   name:'بدر',  spec:'MRI', time:'8:00 ص - 4:00 م', notes:'' },
+    { id:uid(), day:'الأحد',   name:'ديبو',   spec:'CT',  time:'8:00 ص - 4:00 م', notes:'' },
+    { id:uid(), day:'الاثنين', name:'بورا',   spec:'MRI', time:'8:00 ص - 4:00 م', notes:'' },
+    { id:uid(), day:'الاثنين', name:'اشرف',    spec:'CT',  time:'2:00 م - 10:00 م', notes:'شيفت مسائي' },
+    { id:uid(), day:'الثلاثاء',name:'بدر',    spec:'MRI', time:'8:00 ص - 4:00 م', notes:'' },
+    { id:uid(), day:'الأربعاء',name:'بدر',  spec:'MRI', time:'8:00 ص - 4:00 م', notes:'' },
+    { id:uid(), day:'الأربعاء',name:'حربو',   spec:'CT',  time:'8:00 ص - 4:00 م', notes:'' },
+    { id:uid(), day:'الخميس',  name:'بورا',   spec:'MRI', time:'8:00 ص - 2:00 م', notes:'' },
   ];
 
   const exams = [
