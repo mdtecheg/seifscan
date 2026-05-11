@@ -1,5 +1,3 @@
-html
-
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -1762,7 +1760,7 @@ body {
 //  STATE
 // ===========================
 const DAYS = ['السبت','الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة'];
-const DOCTORS = ['د. أحمد سامي','د. سارة محمد','د. خالد يوسف','د. منى حسن','د. كريم عادل'];
+const DOCTORS = ['د. وائل','د. ولاء','د. بسمه','د. حسونه','د. مصطفي'];
 const TECHS = [
   {name:'أحمد علي', spec:'MRI'},
   {name:'محمد حسن', spec:'CT'},
@@ -2607,13 +2605,13 @@ function seedDemoData() {
   if (localStorage.getItem(sonnarKey)) return; // already seeded
 
   const sonnar = [
-    { id:uid(), day:'السبت',   morning:'د. أحمد سامي',  evening:'د. سارة محمد',  notes:'' },
-    { id:uid(), day:'الأحد',   morning:'د. خالد يوسف',  evening:'د. منى حسن',    notes:'' },
-    { id:uid(), day:'الاثنين', morning:'د. كريم عادل',  evening:'د. أحمد سامي',  notes:'' },
-    { id:uid(), day:'الثلاثاء',morning:'د. سارة محمد',  evening:'د. خالد يوسف',  notes:'' },
-    { id:uid(), day:'الأربعاء',morning:'د. منى حسن',    evening:'د. كريم عادل',  notes:'' },
-    { id:uid(), day:'الخميس',  morning:'د. أحمد سامي',  evening:'د. سارة محمد',  notes:'' },
-    { id:uid(), day:'الجمعة',  morning:'د. خالد يوسف',  evening:'',              notes:'إجازة مسائية' },
+    { id:uid(), day:'السبت',   morning:'د. وائل',  evening:'د. ولاء',  notes:'' },
+    { id:uid(), day:'الأحد',   morning:'د. بسمه',  evening:'د. حسونه',    notes:'' },
+    { id:uid(), day:'الاثنين', morning:'د. مصطفي',  evening:'د. وائل',  notes:'' },
+    { id:uid(), day:'الثلاثاء',morning:'د. ولاء',  evening:'د. بسمه',  notes:'' },
+    { id:uid(), day:'الأربعاء',morning:'د. حسونه',    evening:'د. مصطفي',  notes:'' },
+    { id:uid(), day:'الخميس',  morning:'د. وائل',  evening:'د. ولاء',  notes:'' },
+    { id:uid(), day:'الجمعة',  morning:'د. بسمه',  evening:'',              notes:'إجازة مسائية' },
   ];
 
   const techs = [
@@ -2630,12 +2628,12 @@ function seedDemoData() {
   ];
 
   const exams = [
-    { id:uid(), day:'الأحد',   type:'Echo', doctor:'د. كريم عادل',  time:'10:00 ص', notes:'' },
-    { id:uid(), day:'الأحد',   type:'EEG',  doctor:'د. سارة محمد',  time:'1:00 م',  notes:'' },
-    { id:uid(), day:'الاثنين', type:'EMG',  doctor:'د. خالد يوسف',  time:'11:00 ص', notes:'' },
-    { id:uid(), day:'الثلاثاء',type:'4D',   doctor:'د. أحمد سامي',  time:'10:00 ص', notes:'' },
-    { id:uid(), day:'الأربعاء',type:'Echo', doctor:'د. منى حسن',    time:'12:00 م', notes:'' },
-    { id:uid(), day:'الخميس',  type:'EEG',  doctor:'د. كريم عادل',  time:'9:00 ص',  notes:'' },
+    { id:uid(), day:'الأحد',   type:'Echo', doctor:'د. مصطفي',  time:'10:00 ص', notes:'' },
+    { id:uid(), day:'الأحد',   type:'EEG',  doctor:'د. ولاء',  time:'1:00 م',  notes:'' },
+    { id:uid(), day:'الاثنين', type:'EMG',  doctor:'د. بسمه',  time:'11:00 ص', notes:'' },
+    { id:uid(), day:'الثلاثاء',type:'4D',   doctor:'د. وائل',  time:'10:00 ص', notes:'' },
+    { id:uid(), day:'الأربعاء',type:'Echo', doctor:'د. حسونه',    time:'12:00 م', notes:'' },
+    { id:uid(), day:'الخميس',  type:'EEG',  doctor:'د. مصطفي',  time:'9:00 ص',  notes:'' },
   ];
 
   setStorage('sonnar', sonnar);
